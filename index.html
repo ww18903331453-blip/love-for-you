@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>💗 我想和你在一起 💗</title>
+<style>
+*{margin:0;padding:0;}
+body{
+  width:100vw;height:100vh;overflow:hidden;
+  background:radial-gradient(circle at bottom,#2b1055,#090a1a);
+  font-family:"Microsoft YaHei",sans-serif;
+}
+canvas{position:absolute;inset:0;}
+.center{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  color:#fff;
+  z-index:10;
+  text-shadow:0 0 14px rgba(255,180,200,.5);
+}
+.center h1{
+  font-size:44px;
+  animation:breathe 2s infinite;
+}
+.center p{
+  margin-top:16px;
+  font-size:20px;
+  color:#ffd6e0;
+}
+@keyframes breathe{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+}
+.buttons{margin-top:28px;}
+.btn{
+  display:inline-block;
+  padding:12px 30px;
+  margin:0 14px;
+  border-radius:30px;
+  background:rgba(255,120,160,.25);
+  color:#fff;
+  cursor:pointer;
+  font-size:18px;
+  transition:.3s;
+  box-shadow:0 0 18px rgba(255,120,160,.35);
+}
+.btn:hover{
+  background:rgba(255,120,160,.45);
+  transform:scale(1.08);
+}
+.heart{
+  position:absolute;width:14px;height:14px;
+  background:#ff6f91;
+  transform:rotate(45deg);
+  animation:float linear forwards;
+  opacity:.85;
+}
+.heart:before,.heart:after{
+  content:"";position:absolute;width:14px;height:14px;
+  background:inherit;border-radius:50%;
+}
+.heart:before{top:-7px;left:0;}
+.heart:after{left:-7px;top:0;}
+@keyframes float{
+  to{transform:translateY(-100vh) rotate(45deg);opacity:0;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="fire"></canvas>
+
+<div class="center">
+  <h1 id="title">我认真想过了</h1>
+  <p id="text">不是一时心动，是一直喜欢</p>
+
+  <div class="buttons" id="btns">
+    <div class="btn" onclick="yes()">愿意 💖</div>
+    <div class="btn" id="no">我再想想 🙈</div>
+  </div>
+</div>
+
+<script>
+/* 爱心背景 */
+setInterval(()=>{
+  const h=document.createElement("div");
+  h.className="heart";
+  h.style.left=Math.random()*100+"vw";
+  h.style.bottom="-20px";
+  h.style.animationDuration=Math.random()*3+4+"s";
+  document.body.appendChild(h);
+  setTimeout(()=>h.remove(),6000);
+},180);
+
+/* ===== 烟花系统 ===== */
+const c=document.getElementById("fire"),ctx=c.getContext("2d");
+function resize(){c.width=innerWidth;c.height=innerHeight;}
+resize();addEventListener("resize",resize);
+
+let ps=[];
+class P{
+  constructor(x,y,a,s,c){
+    this.x=x;this.y=y;
+    this.a=a;this.s=s;
+    this.o=1;this.c=c;
+  }
+  u(){
+    this.x+=Math.cos(this.a)*this.s;
+    this.y+=Math.sin(this.a)*this.s;
+    this.o-=0.018;
+  }
+  d(){
+    ctx.globalAlpha=this.o;
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,2,0,6.28);
+    ctx.fillStyle=this.c;
+    ctx.fill();
+  }
+}
+
+const colors=["#ff9ebb","#ffd6e0","#cdb4db","#a2d2ff","#ffc8dd"];
+
+function boom(x,y,count=100){
+  for(let i=0;i<count;i++){
+    ps.push(new P(
+      x,y,
+      Math.random()*Math.PI*2,
+      Math.random()*3+1,
+      colors[Math.random()*colors.length|0]
+    ));
+  }
+}
+
+/* 心形烟花 */
+function heartBoom(x,y){
+  for(let t=0;t<Math.PI*2;t+=0.2){
+    const hx=16*Math.pow(Math.sin(t),3);
+    const hy=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+    ps.push(new P(
+      x+hx*4,
+      y+hy*4,
+      Math.random()*6.28,
+      Math.random()*2+1,
+      "#ff6f91"
+    ));
+  }
+}
+
+/* 渲染循环 */
+(function loop(){
+  ctx.fillStyle="rgba(9,10,26,.35)";
+  ctx.fillRect(0,0,c.width,c.height);
+  ps=ps.filter(p=>p.o>0);
+  ps.forEach(p=>{p.u();p.d();});
+  requestAnimationFrame(loop);
+})();
+
+/* 自动烟花（氛围） */
+setInterval(()=>{
+  boom(
+    Math.random()*c.width,
+    Math.random()*c.height*0.6,
+    60
+  );
+},2200);
+
+/* 点击放烟花 */
+addEventListener("click",e=>{
+  boom(e.clientX,e.clientY,120);
+});
+
+/* 文案推进 */
+const lines=[
+ ["不是冲动","是每天都会想起你"],
+ ["我想把未来的日常","都留一个位置给你"],
+ ["所以我想问你一句","你愿意和我在一起吗？"]
+];
+let step=0;
+setInterval(()=>{
+  if(step<lines.length){
+    title.innerText=lines[step][0];
+    text.innerText=lines[step][1];
+    step++;
+  }
+},3200);
+
+/* “再想想”按钮躲避 */
+no.onmouseenter=()=>{
+  no.style.transform=`translate(${Math.random()*160-80}px,${Math.random()*100-50}px)`;
+};
+
+/* 点愿意 → 终极烟花 */
+function yes(){
+  btns.style.display="none";
+  title.innerText="那就说好了 💗";
+  text.innerText="从现在开始，我们一起";
+  let i=0;
+  const timer=setInterval(()=>{
+    heartBoom(innerWidth/2,innerHeight/2-40);
+    i++;
+    if(i>6)clearInterval(timer);
+  },350);
+}
+</script>
+
+</body>
+</html>
